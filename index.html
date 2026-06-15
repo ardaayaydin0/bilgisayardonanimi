@@ -1,0 +1,2187 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Bilgisayar Donanım Test Sınavı</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --card: #111827;
+    --card2: #0b1220;
+    --text: #e5e7eb;
+    --muted: #9ca3af;
+    --accent: #38bdf8;
+    --good: #22c55e;
+    --bad: #ef4444;
+    --border: #243042;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: linear-gradient(180deg, #0f172a 0%, #111827 100%);
+    color: var(--text);
+    line-height: 1.5;
+  }
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px 16px 80px;
+  }
+  .hero {
+    background: rgba(17,24,39,0.85);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 24px;
+    margin-bottom: 18px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.25);
+  }
+  .hero h1 {
+    margin: 0 0 8px;
+    font-size: 28px;
+  }
+  .hero p {
+    margin: 0;
+    color: var(--muted);
+  }
+  .toolbar {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin: 18px 0 24px;
+    align-items: center;
+  }
+  .btn {
+    border: 0;
+    border-radius: 999px;
+    padding: 12px 18px;
+    font-weight: 700;
+    cursor: pointer;
+    background: var(--accent);
+    color: #08111f;
+  }
+  .btn.secondary {
+    background: #1f2937;
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .scorebox {
+    margin-left: auto;
+    color: var(--muted);
+  }
+  .section-title {
+    margin: 28px 0 14px;
+    padding-left: 6px;
+    font-size: 22px;
+    border-left: 4px solid var(--accent);
+  }
+  .question-card {
+    background: rgba(17,24,39,0.92);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 18px;
+    margin-bottom: 14px;
+  }
+  .q-number {
+    display: inline-block;
+    font-size: 13px;
+    font-weight: 700;
+    color: #08111f;
+    background: var(--accent);
+    padding: 5px 10px;
+    border-radius: 999px;
+    margin-bottom: 10px;
+  }
+  .q-text {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 14px;
+  }
+  .options {
+    display: grid;
+    gap: 10px;
+  }
+  .option {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: .15s ease;
+  }
+  .option:hover {
+    border-color: rgba(56,189,248,.7);
+    transform: translateY(-1px);
+  }
+  .option input {
+    margin-top: 4px;
+    transform: scale(1.1);
+  }
+  .option-key {
+    font-weight: 700;
+    min-width: 24px;
+  }
+  .option.correct {
+    border-color: rgba(34,197,94,.9);
+    background: rgba(34,197,94,.08);
+  }
+  .option.wrong {
+    border-color: rgba(239,68,68,.9);
+    background: rgba(239,68,68,.08);
+  }
+  .feedback {
+    margin-top: 12px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    display: none;
+    font-size: 15px;
+  }
+  .feedback.good {
+    display: block;
+    background: rgba(34,197,94,.12);
+    border: 1px solid rgba(34,197,94,.35);
+  }
+  .feedback.bad {
+    display: block;
+    background: rgba(239,68,68,.12);
+    border: 1px solid rgba(239,68,68,.35);
+  }
+  .feedback .answer {
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .sticky-result {
+    position: fixed;
+    right: 18px;
+    bottom: 18px;
+    background: rgba(15,23,42,.95);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 14px 16px;
+    box-shadow: 0 12px 30px rgba(0,0,0,.35);
+    min-width: 220px;
+    z-index: 50;
+  }
+  .sticky-result strong { display:block; font-size: 18px; }
+  .small {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  @media (max-width: 640px) {
+    .q-text { font-size: 16px; }
+    .sticky-result { left: 16px; right: 16px; min-width: auto; }
+    .scorebox { width: 100%; margin-left: 0; }
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <div class="hero">
+      <h1>Bilgisayar Donanım Test Sınavı</h1>
+      <p>Her soru tek tek çözülebilir. Yanlış şık seçilirse doğru cevap ve açıklama otomatik gösterilir.</p>
+    </div>
+
+    <div class="toolbar">
+      <button class="btn" onclick="gradeQuiz()">Sınavı Bitir</button>
+      <button class="btn secondary" onclick="resetQuiz()">Sıfırla</button>
+      <div class="scorebox" id="scorebox">Henüz puanlanmadı.</div>
+    </div>
+
+    <h2 class="section-title">Disk Sürücüleri</h2>
+    <div class="question-card" id="q1">
+      <div class="q-head">
+        <div class="q-number">Soru 1</div>
+      </div>
+      <div class="q-text">Manyetik sabit disklerde yer alan sektörlerden bazılarının zarar görerek, kalıcı olarak okuma ve yazma yapılamaz hale gelmesi aşağıdakilerden hangisidir?</div>
+      <div class="options">
+        <label class="option" data-key="a">
+          <input type="radio" name="q1" value="a">
+          <span class="option-key">a)</span>
+          <span class="option-text">Kirli Sektör (Dirty Sector)</span>
+        </label>
+
+        <label class="option" data-key="b">
+          <input type="radio" name="q1" value="b">
+          <span class="option-key">b)</span>
+          <span class="option-text">Ölü Sektör (Bad Sector)</span>
+        </label>
+
+        <label class="option" data-key="c">
+          <input type="radio" name="q1" value="c">
+          <span class="option-key">c)</span>
+          <span class="option-text">Yırtılmış Sektör (Tear Sector)</span>
+        </label>
+
+        <label class="option" data-key="d">
+          <input type="radio" name="q1" value="d">
+          <span class="option-key">d)</span>
+          <span class="option-text">Uzay Sektör (Space Sector)</span>
+        </label>
+
+        <label class="option" data-key="e">
+          <input type="radio" name="q1" value="e">
+          <span class="option-key">e)</span>
+          <span class="option-text">Engel Sektör (Block Sector)</span>
+        </label></div>
+      <div class="feedback" id="feedback-1"></div>
+    </div>
+    
+    <div class="question-card" id="q2">
+      <div class="q-head">
+        <div class="q-number">Soru 2</div>
+      </div>
+      <div class="q-text">Aşağıdakilerden hangisi hard disk bağlantı arayüzlerinden biri değildir?</div>
+      <div class="options">
+        <label class="option" data-key="a">
+          <input type="radio" name="q2" value="a">
+          <span class="option-key">a)</span>
+          <span class="option-text">SATA</span>
+        </label>
+
+        <label class="option" data-key="b">
+          <input type="radio" name="q2" value="b">
+          <span class="option-key">b)</span>
+          <span class="option-text">IDE</span>
+        </label>
+
+        <label class="option" data-key="c">
+          <input type="radio" name="q2" value="c">
+          <span class="option-key">c)</span>
+          <span class="option-text">NVMe</span>
+        </label>
+
+        <label class="option" data-key="d">
+          <input type="radio" name="q2" value="d">
+          <span class="option-key">d)</span>
+          <span class="option-text">SCSCI</span>
+        </label>
+
+        <label class="option" data-key="e">
+          <input type="radio" name="q2" value="e">
+          <span class="option-key">e)</span>
+          <span class="option-text">DDR-3</span>
+        </label></div>
+      <div class="feedback" id="feedback-2"></div>
+    </div>
+    
+    <div class="question-card" id="q3">
+      <div class="q-head">
+        <div class="q-number">Soru 3</div>
+      </div>
+      <div class="q-text">IDE (PATA) arayüzü ile aktarılabilen en yüksek hız aşağıdakilerden hangisidir?</div>
+      <div class="options">
+        <label class="option" data-key="a">
+          <input type="radio" name="q3" value="a">
+          <span class="option-key">a)</span>
+          <span class="option-text">50 MB/s</span>
+        </label>
+
+        <label class="option" data-key="b">
+          <input type="radio" name="q3" value="b">
+          <span class="option-key">b)</span>
+          <span class="option-text">500 MB/s</span>
+        </label>
+
+        <label class="option" data-key="c">
+          <input type="radio" name="q3" value="c">
+          <span class="option-key">c)</span>
+          <span class="option-text">10 MB/s</span>
+        </label>
+
+        <label class="option" data-key="d">
+          <input type="radio" name="q3" value="d">
+          <span class="option-key">d)</span>
+          <span class="option-text">100 MB/s</span>
+        </label>
+
+        <label class="option" data-key="e">
+          <input type="radio" name="q3" value="e">
+          <span class="option-key">e)</span>
+          <span class="option-text">600 MB/s</span>
+        </label></div>
+      <div class="feedback" id="feedback-3"></div>
+    </div>
+    
+    <div class="question-card" id="q4">
+      <div class="q-head">
+        <div class="q-number">Soru 4</div>
+      </div>
+      <div class="q-text">SATA arayüzü ile aktarılabilen en yüksek hız aşağıdakilerden hangisidir?</div>
+      <div class="options">
+        <label class="option" data-key="a">
+          <input type="radio" name="q4" value="a">
+          <span class="option-key">a)</span>
+          <span class="option-text">50 MB/s</span>
+        </label>
+
+        <label class="option" data-key="b">
+          <input type="radio" name="q4" value="b">
+          <span class="option-key">b)</span>
+          <span class="option-text">500 MB/s</span>
+        </label>
+
+        <label class="option" data-key="c">
+          <input type="radio" name="q4" value="c">
+          <span class="option-key">c)</span>
+          <span class="option-text">10 MB/s</span>
+        </label>
+
+        <label class="option" data-key="d">
+          <input type="radio" name="q4" value="d">
+          <span class="option-key">d)</span>
+          <span class="option-text">100 MB/s</span>
+        </label>
+
+        <label class="option" data-key="e">
+          <input type="radio" name="q4" value="e">
+          <span class="option-key">e)</span>
+          <span class="option-text">600 MB/s</span>
+        </label></div>
+      <div class="feedback" id="feedback-4"></div>
+    </div>
+    
+    <div class="question-card" id="q5">
+      <div class="q-head">
+        <div class="q-number">Soru 5</div>
+      </div>
+      <div class="q-text">Hard disk sağlığı kontrolü yapan ve disk bozulmadan önce uyarı veren teknoloji aşağıdakilerden hangisidir?</div>
+      <div class="options">
+        <label class="option" data-key="a">
+          <input type="radio" name="q5" value="a">
+          <span class="option-key">a)</span>
+          <span class="option-text">SMART</span>
+        </label>
+
+        <label class="option" data-key="b">
+          <input type="radio" name="q5" value="b">
+          <span class="option-key">b)</span>
+          <span class="option-text">TRIM</span>
+        </label>
+
+        <label class="option" data-key="c">
+          <input type="radio" name="q5" value="c">
+          <span class="option-key">c)</span>
+          <span class="option-text">SATA</span>
+        </label>
+
+        <label class="option" data-key="d">
+          <input type="radio" name="q5" value="d">
+          <span class="option-key">d)</span>
+          <span class="option-text">ISCSI</span>
+        </label>
+
+        <label class="option" data-key="e">
+          <input type="radio" name="q5" value="e">
+          <span class="option-key">e)</span>
+          <span class="option-text">RAID</span>
+        </label></div>
+      <div class="feedback" id="feedback-5"></div>
+    </div>
+    
+    <div class="question-card" id="q6">
+      <div class="q-head">
+        <div class="q-number">Soru 6</div>
+      </div>
+      <div class="q-text">İki adet diskle gerçekleştirilen verilerin yarı yarıya dağıtılarak performans elde edildiği RAID teknolojisi aşağıdakilerden hangisidir?</div>
+      <div class="options">
+        <label class="option" data-key="a">
+          <input type="radio" name="q6" value="a">
+          <span class="option-key">a)</span>
+          <span class="option-text">RAID-6</span>
+        </label>
+
+        <label class="option" data-key="b">
+          <input type="radio" name="q6" value="b">
+          <span class="option-key">b)</span>
+          <span class="option-text">RAID-5</span>
+        </label>
+
+        <label class="option" data-key="c">
+          <input type="radio" name="q6" value="c">
+          <span class="option-key">c)</span>
+          <span class="option-text">RAID-0</span>
+        </label>
+
+        <label class="option" data-key="d">
+          <input type="radio" name="q6" value="d">
+          <span class="option-key">d)</span>
+          <span class="option-text">RAID-1</span>
+        </label>
+
+        <label class="option" data-key="e">
+          <input type="radio" name="q6" value="e">
+          <span class="option-key">e)</span>
+          <span class="option-text">RAID-16</span>
+        </label></div>
+      <div class="feedback" id="feedback-6"></div>
+    </div>
+    
+    <div class="question-card" id="q7">
+      <div class="q-head">
+        <div class="q-number">Soru 7</div>
+      </div>
+      <div class="q-text">Aşağıdakilerden hangisi PCIe veri yollarını kullanan SSD’lerden biridir?</div>
+      <div class="options">
+        <label class="option" data-key="a">
+          <input type="radio" name="q7" value="a">
+          <span class="option-key">a)</span>
+          <span class="option-text">NVMe-M.2 Hard Disk</span>
+        </label>
+
+        <label class="option" data-key="b">
+          <input type="radio" name="q7" value="b">
+          <span class="option-key">b)</span>
+          <span class="option-text">SATA-M.2 Hard Disk</span>
+        </label>
+
+        <label class="option" data-key="c">
+          <input type="radio" name="q7" value="c">
+          <span class="option-key">c)</span>
+          <span class="option-text">SAS Hard Disk</span>
+        </label>
+
+        <label class="option" data-key="d">
+          <input type="radio" name="q7" value="d">
+          <span class="option-key">d)</span>
+          <span class="option-text">SCSI Hard Disk</span>
+        </label>
+
+        <label class="option" data-key="e">
+          <input type="radio" name="q7" value="e">
+          <span class="option-key">e)</span>
+          <span class="option-text">IDE Hard Disk</span>
+        </label></div>
+      <div class="feedback" id="feedback-7"></div>
+    </div>
+    
+    <div class="question-card" id="q8">
+      <div class="q-head">
+        <div class="q-number">Soru 8</div>
+      </div>
+      <div class="q-text">Tek seviyeli yongalar olarak adlandırılan, okuma ve yazma döngüsü açısından çok başarılı, maliyet açısından yüksek maliyetli NAND teknolojisi aşağıdakilerden hangisidir?</div>
+      <div class="options">
+        <label class="option" data-key="a">
+          <input type="radio" name="q8" value="a">
+          <span class="option-key">a)</span>
+          <span class="option-text">MLC</span>
+        </label>
+
+        <label class="option" data-key="b">
+          <input type="radio" name="q8" value="b">
+          <span class="option-key">b)</span>
+          <span class="option-text">SLC</span>
+        </label>
+
+        <label class="option" data-key="c">
+          <input type="radio" name="q8" value="c">
+          <span class="option-key">c)</span>
+          <span class="option-text">QLC</span>
+        </label>
+
+        <label class="option" data-key="d">
+          <input type="radio" name="q8" value="d">
+          <span class="option-key">d)</span>
+          <span class="option-text">3D-MLC-NAND</span>
+        </label>
+
+        <label class="option" data-key="e">
+          <input type="radio" name="q8" value="e">
+          <span class="option-key">e)</span>
+          <span class="option-text">TLC</span>
+        </label></div>
+      <div class="feedback" id="feedback-8"></div>
+    </div>
+    
+    <div class="question-card" id="q9">
+      <div class="q-head">
+        <div class="q-number">Soru 9</div>
+      </div>
+      <div class="q-text">Aşağıdaki optik disklerden hangisi en yüksek veri depolama özelliğine sahiptir?</div>
+      <div class="options">
+        <label class="option" data-key="a">
+          <input type="radio" name="q9" value="a">
+          <span class="option-key">a)</span>
+          <span class="option-text">DVD</span>
+        </label>
+
+        <label class="option" data-key="b">
+          <input type="radio" name="q9" value="b">
+          <span class="option-key">b)</span>
+          <span class="option-text">CD</span>
+        </label>
+
+        <label class="option" data-key="c">
+          <input type="radio" name="q9" value="c">
+          <span class="option-key">c)</span>
+          <span class="option-text">BluRay</span>
+        </label>
+
+        <label class="option" data-key="d">
+          <input type="radio" name="q9" value="d">
+          <span class="option-key">d)</span>
+          <span class="option-text">SD-Kart</span>
+        </label>
+
+        <label class="option" data-key="e">
+          <input type="radio" name="q9" value="e">
+          <span class="option-key">e)</span>
+          <span class="option-text">SSD</span>
+        </label></div>
+      <div class="feedback" id="feedback-9"></div>
+    </div>
+    
+    <div class="question-card" id="q10">
+      <div class="q-head">
+        <div class="q-number">Soru 10</div>
+      </div>
+      <div class="q-text">Aşağıdakilerden hangisi diğerlerine göre hafıza kartlarında en yüksek hıza sahip olduğu gösteren etikettir?</div>
+      <div class="options">
+        <label class="option" data-key="a">
+          <input type="radio" name="q10" value="a">
+          <span class="option-key">a)</span>
+          <span class="option-text">C-4</span>
+        </label>
+
+        <label class="option" data-key="b">
+          <input type="radio" name="q10" value="b">
+          <span class="option-key">b)</span>
+          <span class="option-text">C-2</span>
+        </label>
+
+        <label class="option" data-key="c">
+          <input type="radio" name="q10" value="c">
+          <span class="option-key">c)</span>
+          <span class="option-text">C-1</span>
+        </label>
+
+        <label class="option" data-key="d">
+          <input type="radio" name="q10" value="d">
+          <span class="option-key">d)</span>
+          <span class="option-text">U-3</span>
+        </label>
+
+        <label class="option" data-key="e">
+          <input type="radio" name="q10" value="e">
+          <span class="option-key">e)</span>
+          <span class="option-text">U-1</span>
+        </label></div>
+      <div class="feedback" id="feedback-10"></div>
+    </div>
+    <h2 class="section-title">Bilgisayar Kasaları</h2>
+    <div class="question-card" id="q11">
+      <div class="q-head">
+        <div class="q-number">Soru 11</div>
+      </div>
+      <div class="q-text">Bilgisayar kasası üzerinde ki bağlantı girişlerinden hangisi ekrana görüntü aktarmak amacıyla kullanılmaktadır?</div>
+      <div class="options">
+        <label class="option" data-key="a">
+          <input type="radio" name="q11" value="a">
+          <span class="option-key">a)</span>
+          <span class="option-text">USB girişi</span>
+        </label>
+
+        <label class="option" data-key="b">
+          <input type="radio" name="q11" value="b">
+          <span class="option-key">b)</span>
+          <span class="option-text">CPU girişi</span>
+        </label>
+
+        <label class="option" data-key="c">
+          <input type="radio" name="q11" value="c">
+          <span class="option-key">c)</span>
+          <span class="option-text">VGA, HDMI, DVI ve display girişleri</span>
+        </label>
+
+        <label class="option" data-key="d">
+          <input type="radio" name="q11" value="d">
+          <span class="option-key">d)</span>
+          <span class="option-text">Ethernet girişi</span>
+        </label>
+
+        <label class="option" data-key="e">
+          <input type="radio" name="q11" value="e">
+          <span class="option-key">e)</span>
+          <span class="option-text">PSU girişi</span>
+        </label></div>
+      <div class="feedback" id="feedback-11"></div>
+    </div>
+    
+    <div class="question-card" id="q12">
+      <div class="q-head">
+        <div class="q-number">Soru 12</div>
+      </div>
+      <div class="q-text">Anakart, sürücüler ve güç kaynağı gibi temel bileşenlerin kompakt ve düzenli bir şekilde bir arada tutulmasını sağlayan cihazlara verilen isim aşağıdakilerden hangisidir?</div>
+      <div class="options">
+        <label class="option" data-key="a">
+          <input type="radio" name="q12" value="a">
+          <span class="option-key">a)</span>
+          <span class="option-text">Bilgisayar kasası</span>
+        </label>
+
+        <label class="option" data-key="b">
+          <input type="radio" name="q12" value="b">
+          <span class="option-key">b)</span>
+          <span class="option-text">Monitör</span>
+        </label>
+
+        <label class="option" data-key="c">
+          <input type="radio" name="q12" value="c">
+          <span class="option-key">c)</span>
+          <span class="option-text">Yazıcı</span>
+        </label>
+
+        <label class="option" data-key="d">
+          <input type="radio" name="q12" value="d">
+          <span class="option-key">d)</span>
+          <span class="option-text">Klavye</span>
+        </label>
+
+        <label class="option" data-key="e">
+          <input type="radio" name="q12" value="e">
+          <span class="option-key">e)</span>
+          <span class="option-text">Fare</span>
+        </label></div>
+      <div class="feedback" id="feedback-12"></div>
+    </div>
+    
+    <div class="question-card" id="q13">
+      <div class="q-head">
+        <div class="q-number">Soru 13</div>
+      </div>
+      <div class="q-text">Basınç farkı oluşturarak hava akışını sağlayan cihazlara aşağıdakilerden hangisidir?</div>
+      <div class="options">
+        <label class="option" data-key="a">
+          <input type="radio" name="q13" value="a">
+          <span class="option-key">a)</span>
+          <span class="option-text">Anakart</span>
+        </label>
+
+        <label class="option" data-key="b">
+          <input type="radio" name="q13" value="b">
+          <span class="option-key">b)</span>
+          <span class="option-text">Fan</span>
+        </label>
+
+        <label class="option" data-key="c">
+          <input type="radio" name="q13" value="c">
+          <span class="option-key">c)</span>
+          <span class="option-text">Kasa</span>
+        </label>
+
+        <label class="option" data-key="d">
+          <input type="radio" name="q13" value="d">
+          <span class="option-key">d)</span>
+          <span class="option-text">Monitör</span>
+        </label>
+
+        <label class="option" data-key="e">
+          <input type="radio" name="q13" value="e">
+          <span class="option-key">e)</span>
+          <span class="option-text">SSD</span>
+        </label></div>
+      <div class="feedback" id="feedback-13"></div>
+    </div>
+    
+    <div class="question-card" id="q14">
+      <div class="q-head">
+        <div class="q-number">Soru 14</div>
+      </div>
+      <div class="q-text">Fanlar tarafından dışarı gönderilen havadan daha fazlasının kasa içine gelmesi durumuna ne denir?</div>
+      <div class="options">
+        <label class="option" data-key="a">
+          <input type="radio" name="q14" value="a">
+          <span class="option-key">a)</span>
+          <span class="option-text">Negatif hava basıncı</span>
+        </label>
+
+        <label class="option" data-key="b">
+          <input type="radio" name="q14" value="b">
+          <span class="option-key">b)</span>
+          <span class="option-text">Nötr hava basıncı</span>
+        </label>
+
+        <label class="option" data-key="c">
+          <input type="radio" name="q14" value="c">
+          <span class="option-key">c)</span>
+          <span class="option-text">Sıfır hava basıncı</span>
+        </label>
+
+        <label class="option" data-key="d">
+          <input type="radio" name="q14" value="d">
+          <span class="option-key">d)</span>
+          <span class="option-text">Korelasyon hava basıncı</span>
+        </label>
+
+        <label class="option" data-key="e">
+          <input type="radio" name="q14" value="e">
+          <span class="option-key">e)</span>
+          <span class="option-text">Pozitif hava basıncı</span>
+        </label></div>
+      <div class="feedback" id="feedback-14"></div>
+    </div>
+    
+    <div class="question-card" id="q15">
+      <div class="q-head">
+        <div class="q-number">Soru 15</div>
+      </div>
+      <div class="q-text">Dakika başına fit küp anlamına gelen hacimsel akış biriminin kısaltılması aşağıdakilerden hangisidir?</div>
+      <div class="options">
+        <label class="option" data-key="a">
+          <input type="radio" name="q15" value="a">
+          <span class="option-key">a)</span>
+          <span class="option-text">PCI</span>
+        </label>
+
+        <label class="option" data-key="b">
+          <input type="radio" name="q15" value="b">
+          <span class="option-key">b)</span>
+          <span class="option-text">GPU</span>
+        </label>
+
+        <label class="option" data-key="c">
+          <input type="radio" name="q15" value="c">
+          <span class="option-key">c)</span>
+          <span class="option-text">CPU</span>
+        </label>
+
+        <label class="option" data-key="d">
+          <input type="radio" name="q15" value="d">
+          <span class="option-key">d)</span>
+          <span class="option-text">CFM</span>
+        </label>
+
+        <label class="option" data-key="e">
+          <input type="radio" name="q15" value="e">
+          <span class="option-key">e)</span>
+          <span class="option-text">HTPC</span>
+        </label></div>
+      <div class="feedback" id="feedback-15"></div>
+    </div>
+    
+    <div class="question-card" id="q16">
+      <div class="q-head">
+        <div class="q-number">Soru 16</div>
+      </div>
+      <div class="q-text">Bilgisayar kasası içerisinde farklı türde donanım bileşenlerinden hangisi bulunmamaktadır?</div>
+      <div class="options">
+        <label class="option" data-key="a">
+          <input type="radio" name="q16" value="a">
+          <span class="option-key">a)</span>
+          <span class="option-text">CPU</span>
+        </label>
+
+        <label class="option" data-key="b">
+          <input type="radio" name="q16" value="b">
+          <span class="option-key">b)</span>
+          <span class="option-text">CFM</span>
+        </label>
+
+        <label class="option" data-key="c">
+          <input type="radio" name="q16" value="c">
+          <span class="option-key">c)</span>
+          <span class="option-text">PSU</span>
+        </label>
+
+        <label class="option" data-key="d">
+          <input type="radio" name="q16" value="d">
+          <span class="option-key">d)</span>
+          <span class="option-text">GPU</span>
+        </label>
+
+        <label class="option" data-key="e">
+          <input type="radio" name="q16" value="e">
+          <span class="option-key">e)</span>
+          <span class="option-text">RAM</span>
+        </label></div>
+      <div class="feedback" id="feedback-16"></div>
+    </div>
+    
+    <div class="question-card" id="q17">
+      <div class="q-head">
+        <div class="q-number">Soru 17</div>
+      </div>
+      <div class="q-text">Bilgisayar kasaları imal edilirken aşağıdaki malzemelerden hangisi kullanılmamaktadır?</div>
+      <div class="options">
+        <label class="option" data-key="a">
+          <input type="radio" name="q17" value="a">
+          <span class="option-key">a)</span>
+          <span class="option-text">Temperli cam</span>
+        </label>
+
+        <label class="option" data-key="b">
+          <input type="radio" name="q17" value="b">
+          <span class="option-key">b)</span>
+          <span class="option-text">Çelik</span>
+        </label>
+
+        <label class="option" data-key="c">
+          <input type="radio" name="q17" value="c">
+          <span class="option-key">c)</span>
+          <span class="option-text">Alüminyum</span>
+        </label>
+
+        <label class="option" data-key="d">
+          <input type="radio" name="q17" value="d">
+          <span class="option-key">d)</span>
+          <span class="option-text">Bakır</span>
+        </label>
+
+        <label class="option" data-key="e">
+          <input type="radio" name="q17" value="e">
+          <span class="option-key">e)</span>
+          <span class="option-text">Plastik</span>
+        </label></div>
+      <div class="feedback" id="feedback-17"></div>
+    </div>
+    
+    <div class="question-card" id="q18">
+      <div class="q-head">
+        <div class="q-number">Soru 18</div>
+      </div>
+      <div class="q-text">Aşağıdakilerden hangisi bilgisayar kasası üreten firmalardan biri değildir?</div>
+      <div class="options">
+        <label class="option" data-key="a">
+          <input type="radio" name="q18" value="a">
+          <span class="option-key">a)</span>
+          <span class="option-text">Antec</span>
+        </label>
+
+        <label class="option" data-key="b">
+          <input type="radio" name="q18" value="b">
+          <span class="option-key">b)</span>
+          <span class="option-text">NZXT</span>
+        </label>
+
+        <label class="option" data-key="c">
+          <input type="radio" name="q18" value="c">
+          <span class="option-key">c)</span>
+          <span class="option-text">Intel</span>
+        </label>
+
+        <label class="option" data-key="d">
+          <input type="radio" name="q18" value="d">
+          <span class="option-key">d)</span>
+          <span class="option-text">Xoxide</span>
+        </label>
+
+        <label class="option" data-key="e">
+          <input type="radio" name="q18" value="e">
+          <span class="option-key">e)</span>
+          <span class="option-text">Lian Li</span>
+        </label></div>
+      <div class="feedback" id="feedback-18"></div>
+    </div>
+    
+    <div class="question-card" id="q19">
+      <div class="q-head">
+        <div class="q-number">Soru 19</div>
+      </div>
+      <div class="q-text">Aşağıdakilerden hangisi yaygın olarak kullanılan bilgisayar kasa türlerinden değildir?</div>
+      <div class="options">
+        <label class="option" data-key="a">
+          <input type="radio" name="q19" value="a">
+          <span class="option-key">a)</span>
+          <span class="option-text">Mini tower</span>
+        </label>
+
+        <label class="option" data-key="b">
+          <input type="radio" name="q19" value="b">
+          <span class="option-key">b)</span>
+          <span class="option-text">Midi tower</span>
+        </label>
+
+        <label class="option" data-key="c">
+          <input type="radio" name="q19" value="c">
+          <span class="option-key">c)</span>
+          <span class="option-text">Full tower</span>
+        </label>
+
+        <label class="option" data-key="d">
+          <input type="radio" name="q19" value="d">
+          <span class="option-key">d)</span>
+          <span class="option-text">SFF</span>
+        </label>
+
+        <label class="option" data-key="e">
+          <input type="radio" name="q19" value="e">
+          <span class="option-key">e)</span>
+          <span class="option-text">CPU</span>
+        </label></div>
+      <div class="feedback" id="feedback-19"></div>
+    </div>
+    
+    <div class="question-card" id="q20">
+      <div class="q-head">
+        <div class="q-number">Soru 20</div>
+      </div>
+      <div class="q-text">Aşağıdakilerden hangisi mini tower bilgisayar kasa türü özelliklerinden biridir?</div>
+      <div class="options">
+        <label class="option" data-key="a">
+          <input type="radio" name="q20" value="a">
+          <span class="option-key">a)</span>
+          <span class="option-text">12-18 inç yükseklikte ve 6-10 inç genişlikte üretilmek olup dikey yapıdadır</span>
+        </label>
+
+        <label class="option" data-key="b">
+          <input type="radio" name="q20" value="b">
+          <span class="option-key">b)</span>
+          <span class="option-text">15-22 inç yükseklikte ve 6-10 inç genişlikte üretilmek olup dikey yapıdadır</span>
+        </label>
+
+        <label class="option" data-key="c">
+          <input type="radio" name="q20" value="c">
+          <span class="option-key">c)</span>
+          <span class="option-text">22-30 inç yükseklikte ve 9-13 inç genişlikte üretilmek olup dikey yapıdadır</span>
+        </label>
+
+        <label class="option" data-key="d">
+          <input type="radio" name="q20" value="d">
+          <span class="option-key">d)</span>
+          <span class="option-text">10-14 inç yükseklikte ve 5-8 inç genişlikte üretilmek olup dikey yapıdadır</span>
+        </label>
+
+        <label class="option" data-key="e">
+          <input type="radio" name="q20" value="e">
+          <span class="option-key">e)</span>
+          <span class="option-text">7 adet PCI yuvasına sahiptir.</span>
+        </label></div>
+      <div class="feedback" id="feedback-20"></div>
+    </div>
+    <h2 class="section-title">Görüntüleme Bileşenleri</h2>
+    <div class="question-card" id="q21">
+      <div class="q-head">
+        <div class="q-number">Soru 21</div>
+      </div>
+      <div class="q-text">Aşağıdakilerden hangisi bir ekranın kalitesini belirleyen ve kullanıcı seçimlerini etkileyen özelliklerden biri değildir?</div>
+      <div class="options">
+        <label class="option" data-key="a">
+          <input type="radio" name="q21" value="a">
+          <span class="option-key">a)</span>
+          <span class="option-text">Çözünürlük</span>
+        </label>
+
+        <label class="option" data-key="b">
+          <input type="radio" name="q21" value="b">
+          <span class="option-key">b)</span>
+          <span class="option-text">Renk seçenekleri</span>
+        </label>
+
+        <label class="option" data-key="c">
+          <input type="radio" name="q21" value="c">
+          <span class="option-key">c)</span>
+          <span class="option-text">Üretim Tarihi</span>
+        </label>
+
+        <label class="option" data-key="d">
+          <input type="radio" name="q21" value="d">
+          <span class="option-key">d)</span>
+          <span class="option-text">Ekran yenileme hızı</span>
+        </label>
+
+        <label class="option" data-key="e">
+          <input type="radio" name="q21" value="e">
+          <span class="option-key">e)</span>
+          <span class="option-text">Kontrast oranı</span>
+        </label></div>
+      <div class="feedback" id="feedback-21"></div>
+    </div>
+    
+    <div class="question-card" id="q22">
+      <div class="q-head">
+        <div class="q-number">Soru 22</div>
+      </div>
+      <div class="q-text">Ekran yenileme hızı hangi ifade ile belirtilir?</div>
+      <div class="options">
+        <label class="option" data-key="a">
+          <input type="radio" name="q22" value="a">
+          <span class="option-key">a)</span>
+          <span class="option-text">inç</span>
+        </label>
+
+        <label class="option" data-key="b">
+          <input type="radio" name="q22" value="b">
+          <span class="option-key">b)</span>
+          <span class="option-text">Hertz (Hz)</span>
+        </label>
+
+        <label class="option" data-key="c">
+          <input type="radio" name="q22" value="c">
+          <span class="option-key">c)</span>
+          <span class="option-text">Milisaniye (ms)</span>
+        </label>
+
+        <label class="option" data-key="d">
+          <input type="radio" name="q22" value="d">
+          <span class="option-key">d)</span>
+          <span class="option-text">nits</span>
+        </label>
+
+        <label class="option" data-key="e">
+          <input type="radio" name="q22" value="e">
+          <span class="option-key">e)</span>
+          <span class="option-text">bit</span>
+        </label></div>
+      <div class="feedback" id="feedback-22"></div>
+    </div>
+    
+    <div class="question-card" id="q23">
+      <div class="q-head">
+        <div class="q-number">Soru 23</div>
+      </div>
+      <div class="q-text">Aşağıdakilerden hangisi görüntü üzerindeki en koyu ve en açık nokta arasındaki fark hesaplamasını ifade eder?</div>
+      <div class="options">
+        <label class="option" data-key="a">
+          <input type="radio" name="q23" value="a">
+          <span class="option-key">a)</span>
+          <span class="option-text">Kontrast oranı</span>
+        </label>
+
+        <label class="option" data-key="b">
+          <input type="radio" name="q23" value="b">
+          <span class="option-key">b)</span>
+          <span class="option-text">Ekran boyutu</span>
+        </label>
+
+        <label class="option" data-key="c">
+          <input type="radio" name="q23" value="c">
+          <span class="option-key">c)</span>
+          <span class="option-text">Mavi ışık filtresi</span>
+        </label>
+
+        <label class="option" data-key="d">
+          <input type="radio" name="q23" value="d">
+          <span class="option-key">d)</span>
+          <span class="option-text">Tepki süresi</span>
+        </label>
+
+        <label class="option" data-key="e">
+          <input type="radio" name="q23" value="e">
+          <span class="option-key">e)</span>
+          <span class="option-text">Panel türü</span>
+        </label></div>
+      <div class="feedback" id="feedback-23"></div>
+    </div>
+    
+    <div class="question-card" id="q24">
+      <div class="q-head">
+        <div class="q-number">Soru 24</div>
+      </div>
+      <div class="q-text">Aşağıdakilerden hangisi ekran bağlantı türlerinden birisi değildir?</div>
+      <div class="options">
+        <label class="option" data-key="a">
+          <input type="radio" name="q24" value="a">
+          <span class="option-key">a)</span>
+          <span class="option-text">VGA</span>
+        </label>
+
+        <label class="option" data-key="b">
+          <input type="radio" name="q24" value="b">
+          <span class="option-key">b)</span>
+          <span class="option-text">DP</span>
+        </label>
+
+        <label class="option" data-key="c">
+          <input type="radio" name="q24" value="c">
+          <span class="option-key">c)</span>
+          <span class="option-text">HDMI</span>
+        </label>
+
+        <label class="option" data-key="d">
+          <input type="radio" name="q24" value="d">
+          <span class="option-key">d)</span>
+          <span class="option-text">Type-C</span>
+        </label>
+
+        <label class="option" data-key="e">
+          <input type="radio" name="q24" value="e">
+          <span class="option-key">e)</span>
+          <span class="option-text">DAC</span>
+        </label></div>
+      <div class="feedback" id="feedback-24"></div>
+    </div>
+    
+    <div class="question-card" id="q25">
+      <div class="q-head">
+        <div class="q-number">Soru 25</div>
+      </div>
+      <div class="q-text">Yakın mesafelerde kaliteli görüntü aktarımı için kullanılan DisplayPort hangi mesafeye kadar kesintisiz görüntü desteği sağlamaktadır?</div>
+      <div class="options">
+        <label class="option" data-key="a">
+          <input type="radio" name="q25" value="a">
+          <span class="option-key">a)</span>
+          <span class="option-text">5 metre</span>
+        </label>
+
+        <label class="option" data-key="b">
+          <input type="radio" name="q25" value="b">
+          <span class="option-key">b)</span>
+          <span class="option-text">10 metre</span>
+        </label>
+
+        <label class="option" data-key="c">
+          <input type="radio" name="q25" value="c">
+          <span class="option-key">c)</span>
+          <span class="option-text">15 metre</span>
+        </label>
+
+        <label class="option" data-key="d">
+          <input type="radio" name="q25" value="d">
+          <span class="option-key">d)</span>
+          <span class="option-text">20 metre</span>
+        </label>
+
+        <label class="option" data-key="e">
+          <input type="radio" name="q25" value="e">
+          <span class="option-key">e)</span>
+          <span class="option-text">25 metre</span>
+        </label></div>
+      <div class="feedback" id="feedback-25"></div>
+    </div>
+    
+    <div class="question-card" id="q26">
+      <div class="q-head">
+        <div class="q-number">Soru 26</div>
+      </div>
+      <div class="q-text">Aşağıdaki ekran türlerinin hangisinin ana parçası katot ışın tüpleridir?</div>
+      <div class="options">
+        <label class="option" data-key="a">
+          <input type="radio" name="q26" value="a">
+          <span class="option-key">a)</span>
+          <span class="option-text">LCD</span>
+        </label>
+
+        <label class="option" data-key="b">
+          <input type="radio" name="q26" value="b">
+          <span class="option-key">b)</span>
+          <span class="option-text">LED</span>
+        </label>
+
+        <label class="option" data-key="c">
+          <input type="radio" name="q26" value="c">
+          <span class="option-key">c)</span>
+          <span class="option-text">OLED</span>
+        </label>
+
+        <label class="option" data-key="d">
+          <input type="radio" name="q26" value="d">
+          <span class="option-key">d)</span>
+          <span class="option-text">CRT</span>
+        </label>
+
+        <label class="option" data-key="e">
+          <input type="radio" name="q26" value="e">
+          <span class="option-key">e)</span>
+          <span class="option-text">Plazma</span>
+        </label></div>
+      <div class="feedback" id="feedback-26"></div>
+    </div>
+    
+    <div class="question-card" id="q27">
+      <div class="q-head">
+        <div class="q-number">Soru 27</div>
+      </div>
+      <div class="q-text">I. Organik maddeden yapılırlar.<br>II. Arka ışığa ihtiyaçları yoktur.<br>III. AMOLED ve PMOLED olmak üzere iki türü vardır.<br>Yukarıdakilerden hangisi veya hangileri OLED ekran türü için doğrudur?</div>
+      <div class="options">
+        <label class="option" data-key="a">
+          <input type="radio" name="q27" value="a">
+          <span class="option-key">a)</span>
+          <span class="option-text">Yalnız I</span>
+        </label>
+
+        <label class="option" data-key="b">
+          <input type="radio" name="q27" value="b">
+          <span class="option-key">b)</span>
+          <span class="option-text">Yalnız II</span>
+        </label>
+
+        <label class="option" data-key="c">
+          <input type="radio" name="q27" value="c">
+          <span class="option-key">c)</span>
+          <span class="option-text">I ve II</span>
+        </label>
+
+        <label class="option" data-key="d">
+          <input type="radio" name="q27" value="d">
+          <span class="option-key">d)</span>
+          <span class="option-text">II ve III</span>
+        </label>
+
+        <label class="option" data-key="e">
+          <input type="radio" name="q27" value="e">
+          <span class="option-key">e)</span>
+          <span class="option-text">I, II ve III</span>
+        </label></div>
+      <div class="feedback" id="feedback-27"></div>
+    </div>
+    
+    <div class="question-card" id="q28">
+      <div class="q-head">
+        <div class="q-number">Soru 28</div>
+      </div>
+      <div class="q-text">……… inorganik yapıya sahip olması sayesinde yüksek performansını uzun ömürlü olarak korumaktadır.<br>Cümlesinde boş bırakılan yere aşağıdakilerden hangisi getirilmelidir?</div>
+      <div class="options">
+        <label class="option" data-key="a">
+          <input type="radio" name="q28" value="a">
+          <span class="option-key">a)</span>
+          <span class="option-text">CRT</span>
+        </label>
+
+        <label class="option" data-key="b">
+          <input type="radio" name="q28" value="b">
+          <span class="option-key">b)</span>
+          <span class="option-text">Mikro LED</span>
+        </label>
+
+        <label class="option" data-key="c">
+          <input type="radio" name="q28" value="c">
+          <span class="option-key">c)</span>
+          <span class="option-text">Mini LED</span>
+        </label>
+
+        <label class="option" data-key="d">
+          <input type="radio" name="q28" value="d">
+          <span class="option-key">d)</span>
+          <span class="option-text">LCD</span>
+        </label>
+
+        <label class="option" data-key="e">
+          <input type="radio" name="q28" value="e">
+          <span class="option-key">e)</span>
+          <span class="option-text">Plazma</span>
+        </label></div>
+      <div class="feedback" id="feedback-28"></div>
+    </div>
+    
+    <div class="question-card" id="q29">
+      <div class="q-head">
+        <div class="q-number">Soru 29</div>
+      </div>
+      <div class="q-text">I. Bilgisayarın yaydığı radyasyonu tahmin eder.<br>II. TCO 92, TCO 95, TCO 99 ve TCO 2003 gibi versiyonları vardır.<br>III. Çevreye uyumluluk standardı olarakta bilinir.<br>Yukarıdakilerden hangisi veya hangileri TCO standardı için doğru değildir?</div>
+      <div class="options">
+        <label class="option" data-key="a">
+          <input type="radio" name="q29" value="a">
+          <span class="option-key">a)</span>
+          <span class="option-text">I ve II</span>
+        </label>
+
+        <label class="option" data-key="b">
+          <input type="radio" name="q29" value="b">
+          <span class="option-key">b)</span>
+          <span class="option-text">I ve III</span>
+        </label>
+
+        <label class="option" data-key="c">
+          <input type="radio" name="q29" value="c">
+          <span class="option-key">c)</span>
+          <span class="option-text">II ve III</span>
+        </label>
+
+        <label class="option" data-key="d">
+          <input type="radio" name="q29" value="d">
+          <span class="option-key">d)</span>
+          <span class="option-text">Yalnız I</span>
+        </label>
+
+        <label class="option" data-key="e">
+          <input type="radio" name="q29" value="e">
+          <span class="option-key">e)</span>
+          <span class="option-text">Yalnız III</span>
+        </label></div>
+      <div class="feedback" id="feedback-29"></div>
+    </div>
+    
+    <div class="question-card" id="q30">
+      <div class="q-head">
+        <div class="q-number">Soru 30</div>
+      </div>
+      <div class="q-text">Aşağıdakilerden hangisi CE standardının özelliklerinden birisidir?</div>
+      <div class="options">
+        <label class="option" data-key="a">
+          <input type="radio" name="q30" value="a">
+          <span class="option-key">a)</span>
+          <span class="option-text">Elektromanyetik bağışıklık konusunu ele alır.</span>
+        </label>
+
+        <label class="option" data-key="b">
+          <input type="radio" name="q30" value="b">
+          <span class="option-key">b)</span>
+          <span class="option-text">Elektromanyetik radyasyon seviyesini tespit eder.</span>
+        </label>
+
+        <label class="option" data-key="c">
+          <input type="radio" name="q30" value="c">
+          <span class="option-key">c)</span>
+          <span class="option-text">Çevreye uyumluluk standardı olarakta bilinir.</span>
+        </label>
+
+        <label class="option" data-key="d">
+          <input type="radio" name="q30" value="d">
+          <span class="option-key">d)</span>
+          <span class="option-text">Bilgisayarın yaydığı radyasyonu tahmin eder.</span>
+        </label>
+
+        <label class="option" data-key="e">
+          <input type="radio" name="q30" value="e">
+          <span class="option-key">e)</span>
+          <span class="option-text">Alternatif elektrik alanındaki gürültüleri inceler.</span>
+        </label></div>
+      <div class="feedback" id="feedback-30"></div>
+    </div>
+    <h2 class="section-title">Donanım Kartları</h2>
+    <div class="question-card" id="q31">
+      <div class="q-head">
+        <div class="q-number">Soru 31</div>
+      </div>
+      <div class="q-text">Ses kartına gelen analog sinyalleri dijital sinyale dönüştüren yonga seti hangisidir?</div>
+      <div class="options">
+        <label class="option" data-key="a">
+          <input type="radio" name="q31" value="a">
+          <span class="option-key">a)</span>
+          <span class="option-text">DAC</span>
+        </label>
+
+        <label class="option" data-key="b">
+          <input type="radio" name="q31" value="b">
+          <span class="option-key">b)</span>
+          <span class="option-text">ADC</span>
+        </label>
+
+        <label class="option" data-key="c">
+          <input type="radio" name="q31" value="c">
+          <span class="option-key">c)</span>
+          <span class="option-text">Dalga tablosu</span>
+        </label>
+
+        <label class="option" data-key="d">
+          <input type="radio" name="q31" value="d">
+          <span class="option-key">d)</span>
+          <span class="option-text">CD_IN</span>
+        </label>
+
+        <label class="option" data-key="e">
+          <input type="radio" name="q31" value="e">
+          <span class="option-key">e)</span>
+          <span class="option-text">TAD</span>
+        </label></div>
+      <div class="feedback" id="feedback-31"></div>
+    </div>
+    
+    <div class="question-card" id="q32">
+      <div class="q-head">
+        <div class="q-number">Soru 32</div>
+      </div>
+      <div class="q-text">MAC adresi ile ilgili aşağıdaki ifadelerden hangisi doğrudur?</div>
+      <div class="options">
+        <label class="option" data-key="a">
+          <input type="radio" name="q32" value="a">
+          <span class="option-key">a)</span>
+          <span class="option-text">MAC adresi 64 bitten oluşmaktadır.</span>
+        </label>
+
+        <label class="option" data-key="b">
+          <input type="radio" name="q32" value="b">
+          <span class="option-key">b)</span>
+          <span class="option-text">MAC adresi 8 oktettir.</span>
+        </label>
+
+        <label class="option" data-key="c">
+          <input type="radio" name="q32" value="c">
+          <span class="option-key">c)</span>
+          <span class="option-text">MAC adresinin ilk 3 oktetti kart numarasıdır.</span>
+        </label>
+
+        <label class="option" data-key="d">
+          <input type="radio" name="q32" value="d">
+          <span class="option-key">d)</span>
+          <span class="option-text">MAC adresi değiştirilemez</span>
+        </label>
+
+        <label class="option" data-key="e">
+          <input type="radio" name="q32" value="e">
+          <span class="option-key">e)</span>
+          <span class="option-text">MAC adresi bazı bilgisayarlarda aynı olabilir.</span>
+        </label></div>
+      <div class="feedback" id="feedback-32"></div>
+    </div>
+    
+    <div class="question-card" id="q33">
+      <div class="q-head">
+        <div class="q-number">Soru 33</div>
+      </div>
+      <div class="q-text">Farklı donanım birimleri olan TV, Ağ, Yükseltici ve RAID kartı gibi birimler genellikle hangi veri yolunu kullanmaktadır?</div>
+      <div class="options">
+        <label class="option" data-key="a">
+          <input type="radio" name="q33" value="a">
+          <span class="option-key">a)</span>
+          <span class="option-text">AGP</span>
+        </label>
+
+        <label class="option" data-key="b">
+          <input type="radio" name="q33" value="b">
+          <span class="option-key">b)</span>
+          <span class="option-text">PCI</span>
+        </label>
+
+        <label class="option" data-key="c">
+          <input type="radio" name="q33" value="c">
+          <span class="option-key">c)</span>
+          <span class="option-text">PCI-Express</span>
+        </label>
+
+        <label class="option" data-key="d">
+          <input type="radio" name="q33" value="d">
+          <span class="option-key">d)</span>
+          <span class="option-text">ISA</span>
+        </label>
+
+        <label class="option" data-key="e">
+          <input type="radio" name="q33" value="e">
+          <span class="option-key">e)</span>
+          <span class="option-text">BUS</span>
+        </label></div>
+      <div class="feedback" id="feedback-33"></div>
+    </div>
+    
+    <div class="question-card" id="q34">
+      <div class="q-head">
+        <div class="q-number">Soru 34</div>
+      </div>
+      <div class="q-text">Aşağıdakilerden hangisi TV kartı bileşenlerinden değildir?</div>
+      <div class="options">
+        <label class="option" data-key="a">
+          <input type="radio" name="q34" value="a">
+          <span class="option-key">a)</span>
+          <span class="option-text">Chipset</span>
+        </label>
+
+        <label class="option" data-key="b">
+          <input type="radio" name="q34" value="b">
+          <span class="option-key">b)</span>
+          <span class="option-text">Bildirim ledleri</span>
+        </label>
+
+        <label class="option" data-key="c">
+          <input type="radio" name="q34" value="c">
+          <span class="option-key">c)</span>
+          <span class="option-text">Çıkış portları</span>
+        </label>
+
+        <label class="option" data-key="d">
+          <input type="radio" name="q34" value="d">
+          <span class="option-key">d)</span>
+          <span class="option-text">TV tuner</span>
+        </label>
+
+        <label class="option" data-key="e">
+          <input type="radio" name="q34" value="e">
+          <span class="option-key">e)</span>
+          <span class="option-text">S/PDIF</span>
+        </label></div>
+      <div class="feedback" id="feedback-34"></div>
+    </div>
+    
+    <div class="question-card" id="q35">
+      <div class="q-head">
+        <div class="q-number">Soru 35</div>
+      </div>
+      <div class="q-text">Aşağıdakilerden hangisi ağ türü değildir?</div>
+      <div class="options">
+        <label class="option" data-key="a">
+          <input type="radio" name="q35" value="a">
+          <span class="option-key">a)</span>
+          <span class="option-text">WAN</span>
+        </label>
+
+        <label class="option" data-key="b">
+          <input type="radio" name="q35" value="b">
+          <span class="option-key">b)</span>
+          <span class="option-text">LAN</span>
+        </label>
+
+        <label class="option" data-key="c">
+          <input type="radio" name="q35" value="c">
+          <span class="option-key">c)</span>
+          <span class="option-text">MAN</span>
+        </label>
+
+        <label class="option" data-key="d">
+          <input type="radio" name="q35" value="d">
+          <span class="option-key">d)</span>
+          <span class="option-text">VPN</span>
+        </label>
+
+        <label class="option" data-key="e">
+          <input type="radio" name="q35" value="e">
+          <span class="option-key">e)</span>
+          <span class="option-text">PCI</span>
+        </label></div>
+      <div class="feedback" id="feedback-35"></div>
+    </div>
+    
+    <div class="question-card" id="q36">
+      <div class="q-head">
+        <div class="q-number">Soru 36</div>
+      </div>
+      <div class="q-text">Bakır ve Fiber Optik kablolar hangi donanım kartı verilerini taşımak için kullanılır?</div>
+      <div class="options">
+        <label class="option" data-key="a">
+          <input type="radio" name="q36" value="a">
+          <span class="option-key">a)</span>
+          <span class="option-text">TV kartı</span>
+        </label>
+
+        <label class="option" data-key="b">
+          <input type="radio" name="q36" value="b">
+          <span class="option-key">b)</span>
+          <span class="option-text">Yükseltici Kart</span>
+        </label>
+
+        <label class="option" data-key="c">
+          <input type="radio" name="q36" value="c">
+          <span class="option-key">c)</span>
+          <span class="option-text">RAID kartı</span>
+        </label>
+
+        <label class="option" data-key="d">
+          <input type="radio" name="q36" value="d">
+          <span class="option-key">d)</span>
+          <span class="option-text">Ağ kartı</span>
+        </label>
+
+        <label class="option" data-key="e">
+          <input type="radio" name="q36" value="e">
+          <span class="option-key">e)</span>
+          <span class="option-text">Ses Kartı</span>
+        </label></div>
+      <div class="feedback" id="feedback-36"></div>
+    </div>
+    
+    <div class="question-card" id="q37">
+      <div class="q-head">
+        <div class="q-number">Soru 37</div>
+      </div>
+      <div class="q-text">Aşağıdaki firmalardan hangisi yükseltici kart üretimi yapmaz?</div>
+      <div class="options">
+        <label class="option" data-key="a">
+          <input type="radio" name="q37" value="a">
+          <span class="option-key">a)</span>
+          <span class="option-text">Asus</span>
+        </label>
+
+        <label class="option" data-key="b">
+          <input type="radio" name="q37" value="b">
+          <span class="option-key">b)</span>
+          <span class="option-text">MSI</span>
+        </label>
+
+        <label class="option" data-key="c">
+          <input type="radio" name="q37" value="c">
+          <span class="option-key">c)</span>
+          <span class="option-text">Gigabyte</span>
+        </label>
+
+        <label class="option" data-key="d">
+          <input type="radio" name="q37" value="d">
+          <span class="option-key">d)</span>
+          <span class="option-text">Actel</span>
+        </label>
+
+        <label class="option" data-key="e">
+          <input type="radio" name="q37" value="e">
+          <span class="option-key">e)</span>
+          <span class="option-text">XFX</span>
+        </label></div>
+      <div class="feedback" id="feedback-37"></div>
+    </div>
+    
+    <div class="question-card" id="q38">
+      <div class="q-head">
+        <div class="q-number">Soru 38</div>
+      </div>
+      <div class="q-text">Ethernet, Fast-Ethernet, Gigabit-Ethernet iletişim teknolojilerinin bağlantı hızları sırasıyla kaç Mbps’dır?</div>
+      <div class="options">
+        <label class="option" data-key="a">
+          <input type="radio" name="q38" value="a">
+          <span class="option-key">a)</span>
+          <span class="option-text">100,10,1000</span>
+        </label>
+
+        <label class="option" data-key="b">
+          <input type="radio" name="q38" value="b">
+          <span class="option-key">b)</span>
+          <span class="option-text">10,100,100</span>
+        </label>
+
+        <label class="option" data-key="c">
+          <input type="radio" name="q38" value="c">
+          <span class="option-key">c)</span>
+          <span class="option-text">10,100,1000</span>
+        </label>
+
+        <label class="option" data-key="d">
+          <input type="radio" name="q38" value="d">
+          <span class="option-key">d)</span>
+          <span class="option-text">1000,100,10</span>
+        </label>
+
+        <label class="option" data-key="e">
+          <input type="radio" name="q38" value="e">
+          <span class="option-key">e)</span>
+          <span class="option-text">100,100,10</span>
+        </label></div>
+      <div class="feedback" id="feedback-38"></div>
+    </div>
+    
+    <div class="question-card" id="q39">
+      <div class="q-head">
+        <div class="q-number">Soru 39</div>
+      </div>
+      <div class="q-text">Mikrofon ile ortama girilen sesler bilgisayarda bulunan hangi donanım kartı tarafından işlenir?</div>
+      <div class="options">
+        <label class="option" data-key="a">
+          <input type="radio" name="q39" value="a">
+          <span class="option-key">a)</span>
+          <span class="option-text">Ekran kartı</span>
+        </label>
+
+        <label class="option" data-key="b">
+          <input type="radio" name="q39" value="b">
+          <span class="option-key">b)</span>
+          <span class="option-text">Yükseltici (Riser) kart</span>
+        </label>
+
+        <label class="option" data-key="c">
+          <input type="radio" name="q39" value="c">
+          <span class="option-key">c)</span>
+          <span class="option-text">TV kartı</span>
+        </label>
+
+        <label class="option" data-key="d">
+          <input type="radio" name="q39" value="d">
+          <span class="option-key">d)</span>
+          <span class="option-text">Ses Kartı</span>
+        </label>
+
+        <label class="option" data-key="e">
+          <input type="radio" name="q39" value="e">
+          <span class="option-key">e)</span>
+          <span class="option-text">Fax Modem kartı</span>
+        </label></div>
+      <div class="feedback" id="feedback-39"></div>
+    </div>
+    
+    <div class="question-card" id="q40">
+      <div class="q-head">
+        <div class="q-number">Soru 40</div>
+      </div>
+      <div class="q-text">Aşağıdaki RAID türlerinden hangisi verileri ikiye böler ve her bir parçayı farklı bir diskte saklar?</div>
+      <div class="options">
+        <label class="option" data-key="a">
+          <input type="radio" name="q40" value="a">
+          <span class="option-key">a)</span>
+          <span class="option-text">RAID 0</span>
+        </label>
+
+        <label class="option" data-key="b">
+          <input type="radio" name="q40" value="b">
+          <span class="option-key">b)</span>
+          <span class="option-text">RAID 10</span>
+        </label>
+
+        <label class="option" data-key="c">
+          <input type="radio" name="q40" value="c">
+          <span class="option-key">c)</span>
+          <span class="option-text">RAID 1</span>
+        </label>
+
+        <label class="option" data-key="d">
+          <input type="radio" name="q40" value="d">
+          <span class="option-key">d)</span>
+          <span class="option-text">RAID 5</span>
+        </label>
+
+        <label class="option" data-key="e">
+          <input type="radio" name="q40" value="e">
+          <span class="option-key">e)</span>
+          <span class="option-text">RAID 6</span>
+        </label></div>
+      <div class="feedback" id="feedback-40"></div>
+    </div>
+    <h2 class="section-title">Dış Donanım Bileşenleri</h2>
+    <div class="question-card" id="q41">
+      <div class="q-head">
+        <div class="q-number">Soru 41</div>
+      </div>
+      <div class="q-text">Aşağıdakilerden hangisi bilgisayarın dış donanım bileşenlerinden birisi değildir?</div>
+      <div class="options">
+        <label class="option" data-key="a">
+          <input type="radio" name="q41" value="a">
+          <span class="option-key">a)</span>
+          <span class="option-text">Kasa</span>
+        </label>
+
+        <label class="option" data-key="b">
+          <input type="radio" name="q41" value="b">
+          <span class="option-key">b)</span>
+          <span class="option-text">Fare</span>
+        </label>
+
+        <label class="option" data-key="c">
+          <input type="radio" name="q41" value="c">
+          <span class="option-key">c)</span>
+          <span class="option-text">Yazıcı</span>
+        </label>
+
+        <label class="option" data-key="d">
+          <input type="radio" name="q41" value="d">
+          <span class="option-key">d)</span>
+          <span class="option-text">Hoparlör</span>
+        </label>
+
+        <label class="option" data-key="e">
+          <input type="radio" name="q41" value="e">
+          <span class="option-key">e)</span>
+          <span class="option-text">İşlemci</span>
+        </label></div>
+      <div class="feedback" id="feedback-41"></div>
+    </div>
+    
+    <div class="question-card" id="q42">
+      <div class="q-head">
+        <div class="q-number">Soru 42</div>
+      </div>
+      <div class="q-text">Kasaların içerisindeki parçaları koruyabilecek şekilde ……….. veya ………. malzemeden oluşabilen türleri bulunmaktadır.<br>Cümlesinde boş bırakılan yerlere aşağıdakilerden hangisi getirilmelidir?</div>
+      <div class="options">
+        <label class="option" data-key="a">
+          <input type="radio" name="q42" value="a">
+          <span class="option-key">a)</span>
+          <span class="option-text">demir - bakır</span>
+        </label>
+
+        <label class="option" data-key="b">
+          <input type="radio" name="q42" value="b">
+          <span class="option-key">b)</span>
+          <span class="option-text">alüminyum - çelik</span>
+        </label>
+
+        <label class="option" data-key="c">
+          <input type="radio" name="q42" value="c">
+          <span class="option-key">c)</span>
+          <span class="option-text">bakır - çelik</span>
+        </label>
+
+        <label class="option" data-key="d">
+          <input type="radio" name="q42" value="d">
+          <span class="option-key">d)</span>
+          <span class="option-text">plastik - demir</span>
+        </label>
+
+        <label class="option" data-key="e">
+          <input type="radio" name="q42" value="e">
+          <span class="option-key">e)</span>
+          <span class="option-text">alüminyum - bakır</span>
+        </label></div>
+      <div class="feedback" id="feedback-42"></div>
+    </div>
+    
+    <div class="question-card" id="q43">
+      <div class="q-head">
+        <div class="q-number">Soru 43</div>
+      </div>
+      <div class="q-text">Aşağıdakilerden hangisi boyutu en büyük olan kasadır?</div>
+      <div class="options">
+        <label class="option" data-key="a">
+          <input type="radio" name="q43" value="a">
+          <span class="option-key">a)</span>
+          <span class="option-text">Desktop kasa</span>
+        </label>
+
+        <label class="option" data-key="b">
+          <input type="radio" name="q43" value="b">
+          <span class="option-key">b)</span>
+          <span class="option-text">Mini tower kasa</span>
+        </label>
+
+        <label class="option" data-key="c">
+          <input type="radio" name="q43" value="c">
+          <span class="option-key">c)</span>
+          <span class="option-text">Midi tower kasa</span>
+        </label>
+
+        <label class="option" data-key="d">
+          <input type="radio" name="q43" value="d">
+          <span class="option-key">d)</span>
+          <span class="option-text">Full tower kasa</span>
+        </label>
+
+        <label class="option" data-key="e">
+          <input type="radio" name="q43" value="e">
+          <span class="option-key">e)</span>
+          <span class="option-text">Slim kasa</span>
+        </label></div>
+      <div class="feedback" id="feedback-43"></div>
+    </div>
+    
+    <div class="question-card" id="q44">
+      <div class="q-head">
+        <div class="q-number">Soru 44</div>
+      </div>
+      <div class="q-text">Aşağıdaki ekran türlerinin hangisi elektrik akımını ışığa dönüştürmek için organik malzeme kullanır?</div>
+      <div class="options">
+        <label class="option" data-key="a">
+          <input type="radio" name="q44" value="a">
+          <span class="option-key">a)</span>
+          <span class="option-text">LCD</span>
+        </label>
+
+        <label class="option" data-key="b">
+          <input type="radio" name="q44" value="b">
+          <span class="option-key">b)</span>
+          <span class="option-text">LED</span>
+        </label>
+
+        <label class="option" data-key="c">
+          <input type="radio" name="q44" value="c">
+          <span class="option-key">c)</span>
+          <span class="option-text">OLED</span>
+        </label>
+
+        <label class="option" data-key="d">
+          <input type="radio" name="q44" value="d">
+          <span class="option-key">d)</span>
+          <span class="option-text">CRT</span>
+        </label>
+
+        <label class="option" data-key="e">
+          <input type="radio" name="q44" value="e">
+          <span class="option-key">e)</span>
+          <span class="option-text">Plazma</span>
+        </label></div>
+      <div class="feedback" id="feedback-44"></div>
+    </div>
+    
+    <div class="question-card" id="q45">
+      <div class="q-head">
+        <div class="q-number">Soru 45</div>
+      </div>
+      <div class="q-text">Fare üzerindeki ………. menünün açılmasını, ……….. seçim işlemini ve ………. sayfanın aşağı yukarı hareketini sağlar.<br>Cümlesindeki boş bırakılan yerlere sırasıyla aşağıdakilerden hangisi getirilmelidir?</div>
+      <div class="options">
+        <label class="option" data-key="a">
+          <input type="radio" name="q45" value="a">
+          <span class="option-key">a)</span>
+          <span class="option-text">sağ tuş – sol tuş - tekerlek</span>
+        </label>
+
+        <label class="option" data-key="b">
+          <input type="radio" name="q45" value="b">
+          <span class="option-key">b)</span>
+          <span class="option-text">sağ tuş – tekerlek – sol tuş</span>
+        </label>
+
+        <label class="option" data-key="c">
+          <input type="radio" name="q45" value="c">
+          <span class="option-key">c)</span>
+          <span class="option-text">sol tuş – tekerlek – sağ tuş</span>
+        </label>
+
+        <label class="option" data-key="d">
+          <input type="radio" name="q45" value="d">
+          <span class="option-key">d)</span>
+          <span class="option-text">sol tuş – sağ tuş – tekerlek</span>
+        </label>
+
+        <label class="option" data-key="e">
+          <input type="radio" name="q45" value="e">
+          <span class="option-key">e)</span>
+          <span class="option-text">tekerlek – sol tuş – sağ tuş</span>
+        </label></div>
+      <div class="feedback" id="feedback-45"></div>
+    </div>
+    
+    <div class="question-card" id="q46">
+      <div class="q-head">
+        <div class="q-number">Soru 46</div>
+      </div>
+      <div class="q-text">Aşağıdakilerden dış donanım bileşenlerinden hangisi ses içeriğini elektronik sinyaller olarak almakta ve bunları hareket eden manyetik kalıplar yardımıyla hava titreşimlerine dönüştürmektedir?</div>
+      <div class="options">
+        <label class="option" data-key="a">
+          <input type="radio" name="q46" value="a">
+          <span class="option-key">a)</span>
+          <span class="option-text">Yazıcı</span>
+        </label>
+
+        <label class="option" data-key="b">
+          <input type="radio" name="q46" value="b">
+          <span class="option-key">b)</span>
+          <span class="option-text">Ekran</span>
+        </label>
+
+        <label class="option" data-key="c">
+          <input type="radio" name="q46" value="c">
+          <span class="option-key">c)</span>
+          <span class="option-text">Fare</span>
+        </label>
+
+        <label class="option" data-key="d">
+          <input type="radio" name="q46" value="d">
+          <span class="option-key">d)</span>
+          <span class="option-text">Kasa</span>
+        </label>
+
+        <label class="option" data-key="e">
+          <input type="radio" name="q46" value="e">
+          <span class="option-key">e)</span>
+          <span class="option-text">Hoparlör</span>
+        </label></div>
+      <div class="feedback" id="feedback-46"></div>
+    </div>
+    
+    <div class="question-card" id="q47">
+      <div class="q-head">
+        <div class="q-number">Soru 47</div>
+      </div>
+      <div class="q-text">I. Baskı kalitesi yüksek olmalıdır.<br>II. Baskı hızı yüksek olmalıdır.<br>III. Tek bir bağlantı seçeneğine sahip olmalıdır.<br>Yukarıdakilerden hangisi veya hangileri OLED ekran türü için doğrudur?</div>
+      <div class="options">
+        <label class="option" data-key="a">
+          <input type="radio" name="q47" value="a">
+          <span class="option-key">a)</span>
+          <span class="option-text">Yalnız I</span>
+        </label>
+
+        <label class="option" data-key="b">
+          <input type="radio" name="q47" value="b">
+          <span class="option-key">b)</span>
+          <span class="option-text">I ve II</span>
+        </label>
+
+        <label class="option" data-key="c">
+          <input type="radio" name="q47" value="c">
+          <span class="option-key">c)</span>
+          <span class="option-text">I ve III</span>
+        </label>
+
+        <label class="option" data-key="d">
+          <input type="radio" name="q47" value="d">
+          <span class="option-key">d)</span>
+          <span class="option-text">II ve III</span>
+        </label>
+
+        <label class="option" data-key="e">
+          <input type="radio" name="q47" value="e">
+          <span class="option-key">e)</span>
+          <span class="option-text">I, II ve III</span>
+        </label></div>
+      <div class="feedback" id="feedback-47"></div>
+    </div>
+    
+    <div class="question-card" id="q48">
+      <div class="q-head">
+        <div class="q-number">Soru 48</div>
+      </div>
+      <div class="q-text">……… bir resim, bir fotoğraf veya kâğıt üzerindeki herhangi bir dokümanı bilgisayar ortamına aktaran araçtır.<br>Cümlesinde boş bırakılan yere aşağıdakilerden hangisi getirilmelidir?</div>
+      <div class="options">
+        <label class="option" data-key="a">
+          <input type="radio" name="q48" value="a">
+          <span class="option-key">a)</span>
+          <span class="option-text">Hoparlör</span>
+        </label>
+
+        <label class="option" data-key="b">
+          <input type="radio" name="q48" value="b">
+          <span class="option-key">b)</span>
+          <span class="option-text">Disk sürücüsü</span>
+        </label>
+
+        <label class="option" data-key="c">
+          <input type="radio" name="q48" value="c">
+          <span class="option-key">c)</span>
+          <span class="option-text">Fare</span>
+        </label>
+
+        <label class="option" data-key="d">
+          <input type="radio" name="q48" value="d">
+          <span class="option-key">d)</span>
+          <span class="option-text">Tarayıcı</span>
+        </label>
+
+        <label class="option" data-key="e">
+          <input type="radio" name="q48" value="e">
+          <span class="option-key">e)</span>
+          <span class="option-text">Ekran</span>
+        </label></div>
+      <div class="feedback" id="feedback-48"></div>
+    </div>
+    
+    <div class="question-card" id="q49">
+      <div class="q-head">
+        <div class="q-number">Soru 49</div>
+      </div>
+      <div class="q-text">I. Fotoğraf, video ve ses dosyaları gibi küçük boyutta verilerin saklar.<br>II. Genellikle SD, microSD veya CF tipinde olurlar.<br>III. Bilgisayarın dahili hafızasının dışında kullanılır.<br>Yukarıdakilerden hangisi veya hangileri hafıza kartı için doğrudur?</div>
+      <div class="options">
+        <label class="option" data-key="a">
+          <input type="radio" name="q49" value="a">
+          <span class="option-key">a)</span>
+          <span class="option-text">I ve II</span>
+        </label>
+
+        <label class="option" data-key="b">
+          <input type="radio" name="q49" value="b">
+          <span class="option-key">b)</span>
+          <span class="option-text">I ve III</span>
+        </label>
+
+        <label class="option" data-key="c">
+          <input type="radio" name="q49" value="c">
+          <span class="option-key">c)</span>
+          <span class="option-text">II ve III</span>
+        </label>
+
+        <label class="option" data-key="d">
+          <input type="radio" name="q49" value="d">
+          <span class="option-key">d)</span>
+          <span class="option-text">Yalnız III</span>
+        </label>
+
+        <label class="option" data-key="e">
+          <input type="radio" name="q49" value="e">
+          <span class="option-key">e)</span>
+          <span class="option-text">I, II ve III</span>
+        </label></div>
+      <div class="feedback" id="feedback-49"></div>
+    </div>
+    
+    <div class="question-card" id="q50">
+      <div class="q-head">
+        <div class="q-number">Soru 50</div>
+      </div>
+      <div class="q-text">Aşağıdakilerden hangisi kameranın ışık hassasiyetini gösteren özelliktir?</div>
+      <div class="options">
+        <label class="option" data-key="a">
+          <input type="radio" name="q50" value="a">
+          <span class="option-key">a)</span>
+          <span class="option-text">Çözünürlük</span>
+        </label>
+
+        <label class="option" data-key="b">
+          <input type="radio" name="q50" value="b">
+          <span class="option-key">b)</span>
+          <span class="option-text">Objektifler</span>
+        </label>
+
+        <label class="option" data-key="c">
+          <input type="radio" name="q50" value="c">
+          <span class="option-key">c)</span>
+          <span class="option-text">Hız</span>
+        </label>
+
+        <label class="option" data-key="d">
+          <input type="radio" name="q50" value="d">
+          <span class="option-key">d)</span>
+          <span class="option-text">Dijital zoom</span>
+        </label>
+
+        <label class="option" data-key="e">
+          <input type="radio" name="q50" value="e">
+          <span class="option-key">e)</span>
+          <span class="option-text">ISO</span>
+        </label></div>
+      <div class="feedback" id="feedback-50"></div>
+    </div>
+    
+  </div>
+
+  <div class="sticky-result" id="stickyResult">
+    <strong id="stickyScore">0 / 50</strong>
+    <div class="small">Cevaplama yaptıkça anında geri bildirim alırsın.</div>
+  </div>
+
+<script>
+const quizData = [{"id": 1, "answer": "b", "explanation": "Bad sector, fiziksel ya da mantıksal hasar nedeniyle kalıcı okuma-yazma hatası oluşan sektörlerdir.", "options": {"a": "Kirli Sektör (Dirty Sector)", "b": "Ölü Sektör (Bad Sector)", "c": "Yırtılmış Sektör (Tear Sector)", "d": "Uzay Sektör (Space Sector)", "e": "Engel Sektör (Block Sector)"}}, {"id": 2, "answer": "e", "explanation": "DDR-3 bir bellek türüdür; hard disk bağlantı arayüzü değildir.", "options": {"a": "SATA", "b": "IDE", "c": "NVMe", "d": "SCSCI", "e": "DDR-3"}}, {"id": 3, "answer": "d", "explanation": "IDE (PATA) için verilen en yüksek hız 100 MB/s olarak kabul edilir.", "options": {"a": "50 MB/s", "b": "500 MB/s", "c": "10 MB/s", "d": "100 MB/s", "e": "600 MB/s"}}, {"id": 4, "answer": "e", "explanation": "SATA 6 Gb/s sınıfı, yaklaşık 600 MB/s aktarım hızına ulaşır.", "options": {"a": "50 MB/s", "b": "500 MB/s", "c": "10 MB/s", "d": "100 MB/s", "e": "600 MB/s"}}, {"id": 5, "answer": "a", "explanation": "SMART, disklerin çalışma verilerini izleyip arıza öncesi uyarı veren teknolojidir.", "options": {"a": "SMART", "b": "TRIM", "c": "SATA", "d": "ISCSI", "e": "RAID"}}, {"id": 6, "answer": "c", "explanation": "RAID 0, veriyi parçalara ayırıp diskler arasında dağıtarak performansı artırır.", "options": {"a": "RAID-6", "b": "RAID-5", "c": "RAID-0", "d": "RAID-1", "e": "RAID-16"}}, {"id": 7, "answer": "a", "explanation": "NVMe-M.2 SSD’ler PCIe veri yolunu kullanır.", "options": {"a": "NVMe-M.2 Hard Disk", "b": "SATA-M.2 Hard Disk", "c": "SAS Hard Disk", "d": "SCSI Hard Disk", "e": "IDE Hard Disk"}}, {"id": 8, "answer": "b", "explanation": "SLC (Single Level Cell) tek seviyeli hücre yapısıdır ve daha dayanıklıdır.", "options": {"a": "MLC", "b": "SLC", "c": "QLC", "d": "3D-MLC-NAND", "e": "TLC"}}, {"id": 9, "answer": "c", "explanation": "Blu-ray diskler CD ve DVD’ye göre daha yüksek kapasite sunar.", "options": {"a": "DVD", "b": "CD", "c": "BluRay", "d": "SD-Kart", "e": "SSD"}}, {"id": 10, "answer": "d", "explanation": "U3 etiketi, hafıza kartlarında yüksek ve sürekli yazma hızını ifade eder.", "options": {"a": "C-4", "b": "C-2", "c": "C-1", "d": "U-3", "e": "U-1"}}, {"id": 11, "answer": "c", "explanation": "Ekran bağlantısı için VGA, HDMI, DVI ve DisplayPort gibi çıkışlar kullanılır.", "options": {"a": "USB girişi", "b": "CPU girişi", "c": "VGA, HDMI, DVI ve display girişleri", "d": "Ethernet girişi", "e": "PSU girişi"}}, {"id": 12, "answer": "a", "explanation": "Bu bileşenleri bir arada tutan yapı bilgisayar kasasıdır.", "options": {"a": "Bilgisayar kasası", "b": "Monitör", "c": "Yazıcı", "d": "Klavye", "e": "Fare"}}, {"id": 13, "answer": "b", "explanation": "Fan, hava akışı oluşturmak için basınç farkı üretir.", "options": {"a": "Anakart", "b": "Fan", "c": "Kasa", "d": "Monitör", "e": "SSD"}}, {"id": 14, "answer": "e", "explanation": "İçeri giren hava daha fazlaysa sistemde pozitif basınç oluşur.", "options": {"a": "Negatif hava basıncı", "b": "Nötr hava basıncı", "c": "Sıfır hava basıncı", "d": "Korelasyon hava basıncı", "e": "Pozitif hava basıncı"}}, {"id": 15, "answer": "d", "explanation": "CFM, hava akış miktarını ifade eden birimdir.", "options": {"a": "PCI", "b": "GPU", "c": "CPU", "d": "CFM", "e": "HTPC"}}, {"id": 16, "answer": "b", "explanation": "CFM bir ölçü birimidir; kasa içindeki donanım bileşeni değildir.", "options": {"a": "CPU", "b": "CFM", "c": "PSU", "d": "GPU", "e": "RAM"}}, {"id": 17, "answer": "d", "explanation": "Kasa üretiminde çelik, alüminyum, plastik ve cam kullanılır; bakır tipik kasa malzemesi değildir.", "options": {"a": "Temperli cam", "b": "Çelik", "c": "Alüminyum", "d": "Bakır", "e": "Plastik"}}, {"id": 18, "answer": "c", "explanation": "Intel işlemci ve çipset üreticisi olarak bilinir; kasa üreticisi değildir.", "options": {"a": "Antec", "b": "NZXT", "c": "Intel", "d": "Xoxide", "e": "Lian Li"}}, {"id": 19, "answer": "e", "explanation": "CPU bir işlemci türüdür, kasa türü değildir.", "options": {"a": "Mini tower", "b": "Midi tower", "c": "Full tower", "d": "SFF", "e": "CPU"}}, {"id": 20, "answer": "a", "explanation": "Mini tower kasalar küçük-orta boy dikey kasalardır ve verilen ölçü aralığıyla örtüşür.", "options": {"a": "12-18 inç yükseklikte ve 6-10 inç genişlikte üretilmek olup dikey yapıdadır", "b": "15-22 inç yükseklikte ve 6-10 inç genişlikte üretilmek olup dikey yapıdadır", "c": "22-30 inç yükseklikte ve 9-13 inç genişlikte üretilmek olup dikey yapıdadır", "d": "10-14 inç yükseklikte ve 5-8 inç genişlikte üretilmek olup dikey yapıdadır", "e": "7 adet PCI yuvasına sahiptir."}}, {"id": 21, "answer": "c", "explanation": "Ekran kalitesini çözünürlük, yenileme hızı ve kontrast gibi teknik özellikler belirler.", "options": {"a": "Çözünürlük", "b": "Renk seçenekleri", "c": "Üretim Tarihi", "d": "Ekran yenileme hızı", "e": "Kontrast oranı"}}, {"id": 22, "answer": "b", "explanation": "Yenileme hızı Hertz (Hz) ile ifade edilir.", "options": {"a": "inç", "b": "Hertz (Hz)", "c": "Milisaniye (ms)", "d": "nits", "e": "bit"}}, {"id": 23, "answer": "a", "explanation": "Kontrast oranı, en koyu siyah ile en parlak beyaz arasındaki farkı gösterir.", "options": {"a": "Kontrast oranı", "b": "Ekran boyutu", "c": "Mavi ışık filtresi", "d": "Tepki süresi", "e": "Panel türü"}}, {"id": 24, "answer": "e", "explanation": "DAC dijital-analog dönüştürücüdür; ekran bağlantı türü değildir.", "options": {"a": "VGA", "b": "DP", "c": "HDMI", "d": "Type-C", "e": "DAC"}}, {"id": 25, "answer": "a", "explanation": "Metne göre DisplayPort kısa mesafede 5 metreye kadar kesintisiz görüntü desteği sağlar.", "options": {"a": "5 metre", "b": "10 metre", "c": "15 metre", "d": "20 metre", "e": "25 metre"}}, {"id": 26, "answer": "d", "explanation": "CRT ekranların temelinde katot ışın tüpü bulunur.", "options": {"a": "LCD", "b": "LED", "c": "OLED", "d": "CRT", "e": "Plazma"}}, {"id": 27, "answer": "e", "explanation": "OLED paneller organik yapıdadır, arka ışık kullanmaz ve AMOLED/PMOLED türleri vardır.", "options": {"a": "Yalnız I", "b": "Yalnız II", "c": "I ve II", "d": "II ve III", "e": "I, II ve III"}}, {"id": 28, "answer": "b", "explanation": "Mikro LED, inorganik yapısı sayesinde uzun ömür ve yüksek performans sunar.", "options": {"a": "CRT", "b": "Mikro LED", "c": "Mini LED", "d": "LCD", "e": "Plazma"}}, {"id": 29, "answer": "d", "explanation": "TCO çevresel uyumluluk standardıdır; bu ifadeler içinde doğru olmayan madde I’dir.", "options": {"a": "I ve II", "b": "I ve III", "c": "II ve III", "d": "Yalnız I", "e": "Yalnız III"}}, {"id": 30, "answer": "a", "explanation": "CE işareti, ürünün ilgili güvenlik ve elektromanyetik uyumluluk şartlarını karşıladığını gösterir.", "options": {"a": "Elektromanyetik bağışıklık konusunu ele alır.", "b": "Elektromanyetik radyasyon seviyesini tespit eder.", "c": "Çevreye uyumluluk standardı olarakta bilinir.", "d": "Bilgisayarın yaydığı radyasyonu tahmin eder.", "e": "Alternatif elektrik alanındaki gürültüleri inceler."}}, {"id": 31, "answer": "b", "explanation": "ADC, analog sinyali dijitale dönüştürür.", "options": {"a": "DAC", "b": "ADC", "c": "Dalga tablosu", "d": "CD_IN", "e": "TAD"}}, {"id": 32, "answer": "d", "explanation": "MAC adresi donanıma atanan benzersiz bir adres olarak kabul edilir.", "options": {"a": "MAC adresi 64 bitten oluşmaktadır.", "b": "MAC adresi 8 oktettir.", "c": "MAC adresinin ilk 3 oktetti kart numarasıdır.", "d": "MAC adresi değiştirilemez", "e": "MAC adresi bazı bilgisayarlarda aynı olabilir."}}, {"id": 33, "answer": "c", "explanation": "Bu tür kartlar güncel sistemlerde çoğunlukla PCI-Express kullanır.", "options": {"a": "AGP", "b": "PCI", "c": "PCI-Express", "d": "ISA", "e": "BUS"}}, {"id": 34, "answer": "e", "explanation": "S/PDIF ses bağlantısıyla ilgilidir; TV kartının temel bileşeni değildir.", "options": {"a": "Chipset", "b": "Bildirim ledleri", "c": "Çıkış portları", "d": "TV tuner", "e": "S/PDIF"}}, {"id": 35, "answer": "e", "explanation": "PCI bir veri yoludur; ağ türü değildir.", "options": {"a": "WAN", "b": "LAN", "c": "MAN", "d": "VPN", "e": "PCI"}}, {"id": 36, "answer": "d", "explanation": "Bakır ve fiber optik kablolar ağ kartı ile taşınan iletişim verileri için kullanılır.", "options": {"a": "TV kartı", "b": "Yükseltici Kart", "c": "RAID kartı", "d": "Ağ kartı", "e": "Ses Kartı"}}, {"id": 37, "answer": "d", "explanation": "Actel bu listede yükseltici kart üreticisi olarak verilmemiştir.", "options": {"a": "Asus", "b": "MSI", "c": "Gigabyte", "d": "Actel", "e": "XFX"}}, {"id": 38, "answer": "c", "explanation": "Sıralama 10 Mbps, 100 Mbps ve 1000 Mbps şeklindedir.", "options": {"a": "100,10,1000", "b": "10,100,100", "c": "10,100,1000", "d": "1000,100,10", "e": "100,100,10"}}, {"id": 39, "answer": "d", "explanation": "Mikrofondan gelen ses sinyalleri ses kartı tarafından işlenir.", "options": {"a": "Ekran kartı", "b": "Yükseltici (Riser) kart", "c": "TV kartı", "d": "Ses Kartı", "e": "Fax Modem kartı"}}, {"id": 40, "answer": "a", "explanation": "RAID 0, verileri striping yöntemiyle diskler arasında böler.", "options": {"a": "RAID 0", "b": "RAID 10", "c": "RAID 1", "d": "RAID 5", "e": "RAID 6"}}, {"id": 41, "answer": "e", "explanation": "İşlemci bilgisayarın iç donanım bileşenidir.", "options": {"a": "Kasa", "b": "Fare", "c": "Yazıcı", "d": "Hoparlör", "e": "İşlemci"}}, {"id": 42, "answer": "b", "explanation": "Kasalar çoğunlukla alüminyum veya çelikten üretilebilir.", "options": {"a": "demir - bakır", "b": "alüminyum - çelik", "c": "bakır - çelik", "d": "plastik - demir", "e": "alüminyum - bakır"}}, {"id": 43, "answer": "d", "explanation": "Full tower kasalar en büyük kasa türleri arasında yer alır.", "options": {"a": "Desktop kasa", "b": "Mini tower kasa", "c": "Midi tower kasa", "d": "Full tower kasa", "e": "Slim kasa"}}, {"id": 44, "answer": "c", "explanation": "OLED ekranlar organik malzemeler kullanır.", "options": {"a": "LCD", "b": "LED", "c": "OLED", "d": "CRT", "e": "Plazma"}}, {"id": 45, "answer": "a", "explanation": "Sağ tuş menü açar, sol tuş seçim yapar, tekerlek sayfayı kaydırır.", "options": {"a": "sağ tuş – sol tuş - tekerlek", "b": "sağ tuş – tekerlek – sol tuş", "c": "sol tuş – tekerlek – sağ tuş", "d": "sol tuş – sağ tuş – tekerlek", "e": "tekerlek – sol tuş – sağ tuş"}}, {"id": 46, "answer": "e", "explanation": "Hoparlör, elektrik sinyallerini sese dönüştürür.", "options": {"a": "Yazıcı", "b": "Ekran", "c": "Fare", "d": "Kasa", "e": "Hoparlör"}}, {"id": 47, "answer": "b", "explanation": "Soru metni karışık olsa da cevap anahtarına göre doğru seçenek I ve II’dir.", "options": {"a": "Yalnız I", "b": "I ve II", "c": "I ve III", "d": "II ve III", "e": "I, II ve III"}}, {"id": 48, "answer": "d", "explanation": "Tarayıcı, fiziksel belgeleri bilgisayara aktarmak için kullanılır.", "options": {"a": "Hoparlör", "b": "Disk sürücüsü", "c": "Fare", "d": "Tarayıcı", "e": "Ekran"}}, {"id": 49, "answer": "e", "explanation": "Hafıza kartları küçük verileri saklar, çeşitli tipleri vardır ve harici kullanımda yer alır.", "options": {"a": "I ve II", "b": "I ve III", "c": "II ve III", "d": "Yalnız III", "e": "I, II ve III"}}, {"id": 50, "answer": "e", "explanation": "ISO, kameranın ışığa duyarlılık seviyesini ifade eder.", "options": {"a": "Çözünürlük", "b": "Objektifler", "c": "Hız", "d": "Dijital zoom", "e": "ISO"}}];
+
+function letterToText(q, letter) {
+  return q.options[letter];
+}
+
+function normalizeAnswer(text) {
+  return text;
+}
+
+document.querySelectorAll('.option input').forEach(input => {
+  input.addEventListener('change', (e) => {
+    const radio = e.target;
+    const card = radio.closest('.question-card');
+    const qId = parseInt(card.id.replace('q', ''));
+    const q = quizData[qId - 1];
+    const selected = radio.value;
+    const feedback = document.getElementById(`feedback-${qId}`);
+    const allOptions = card.querySelectorAll('.option');
+
+    allOptions.forEach(opt => opt.classList.remove('correct', 'wrong'));
+
+    const correctOption = card.querySelector(`.option[data-key="${q.answer}"]`);
+    if (correctOption) correctOption.classList.add('correct');
+
+    if (selected === q.answer) {
+      radio.closest('.option').classList.add('correct');
+      feedback.className = 'feedback good';
+      feedback.innerHTML = `<div class="answer">Doğru!</div><div>${q.explanation}</div>`;
+    } else {
+      radio.closest('.option').classList.add('wrong');
+      feedback.className = 'feedback bad';
+      const correctText = q.options[q.answer];
+      feedback.innerHTML = `<div class="answer">Yanlış.</div><div>Doğru cevap: <strong>${q.answer})</strong> ${correctText}</div><div style="margin-top:6px;">${q.explanation}</div>`;
+    }
+    updateLiveScore();
+  });
+});
+
+function answeredCount() {
+  let count = 0;
+  quizData.forEach((q, idx) => {
+    const checked = document.querySelector(`#q${idx+1} input[type="radio"]:checked`);
+    if (checked) count++;
+  });
+  return count;
+}
+
+function correctCount() {
+  let count = 0;
+  quizData.forEach((q, idx) => {
+    const checked = document.querySelector(`#q${idx+1} input[type="radio"]:checked`);
+    if (checked && checked.value === q.answer) count++;
+  });
+  return count;
+}
+
+function updateLiveScore() {
+  document.getElementById('stickyScore').textContent = `${correctCount()} / ${quizData.length}`;
+}
+
+function gradeQuiz() {
+  const correct = correctCount();
+  const total = quizData.length;
+  const answered = answeredCount();
+  document.getElementById('scorebox').textContent = `Cevaplanan: ${answered} / ${total} — Doğru: ${correct} / ${total}`;
+  document.getElementById('stickyScore').textContent = `${correct} / ${total}`;
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+function resetQuiz() {
+  document.querySelectorAll('input[type="radio"]').forEach(r => r.checked = false);
+  document.querySelectorAll('.option').forEach(opt => opt.classList.remove('correct', 'wrong'));
+  document.querySelectorAll('.feedback').forEach(fb => {
+    fb.className = 'feedback';
+    fb.innerHTML = '';
+    fb.style.display = 'none';
+  });
+  document.getElementById('scorebox').textContent = 'Henüz puanlanmadı.';
+  document.getElementById('stickyScore').textContent = `0 / ${quizData.length}`;
+}
+</script>
+</body>
+</html>
